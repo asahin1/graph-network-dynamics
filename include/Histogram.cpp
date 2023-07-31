@@ -4,7 +4,7 @@
 namespace histogram{
     void generateHistogram(Gnuplot &plotObj, Eigen::VectorXf &eigenvalues){
         // std::cout << eigenvalues << std::endl;
-        double eigenSum = std::accumulate(eigenvalues.begin(), eigenvalues.end(), 0);
+        double eigenSum = std::accumulate(eigenvalues.begin(), eigenvalues.end(), 0.0);
         double minEigVal = eigenvalues[0];
         int eigenSize = eigenvalues.size();
         double maxEigVal = eigenvalues[eigenSize-1];

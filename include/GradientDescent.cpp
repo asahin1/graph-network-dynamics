@@ -93,7 +93,7 @@ Eigen::MatrixXf GradientDescent::computeAdjGradientDoubleSum(const std::shared_p
 
     // double sum gradient
     Eigen::MatrixXf gradientMat = Eigen::MatrixXf::Zero(graph->adjacencyMatrix.rows(),graph->adjacencyMatrix.cols());
-    double sumEig = std::accumulate(graph->eigenValues.begin(), graph->eigenValues.end(), 0);
+    double sumEig = std::accumulate(graph->eigenValues.begin(), graph->eigenValues.end(), 0.0);
     int nEig = graph->eigenValues.size();
     for(int j{0}; j<gradientMat.rows(); j++){
         auto u_row_j = graph->eigenVectors.row(j);
@@ -150,7 +150,7 @@ void GradientDescent::plotGraph(){
 void GradientDescent::printIterInfo(const int iterNo) const{
     std::cout << "Iter #: " << iterNo+1 << std::endl;
     auto eigenvalues = graphHistory.back()->eigenValues;
-    std::cout << "Eigenvalue sum: " << std::accumulate(eigenvalues.begin(), eigenvalues.end(), 0) << std::endl;
+    std::cout << "Eigenvalue sum: " << std::accumulate(eigenvalues.begin(), eigenvalues.end(), 0.0) << std::endl;
     double eigDistNorm{0};
     double eigDistMin{eigenvalues[eigenvalues.size()-1]};
     for(int j{0}; j<eigenvalues.size(); j++){

@@ -1,6 +1,7 @@
 #include "Graph.hpp"
 #include <iostream>
 #include <memory>
+#include <numeric>
 
 void Graph::constructSimpleGraph(const int size)
 {
