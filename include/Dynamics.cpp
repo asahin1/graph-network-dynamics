@@ -65,10 +65,11 @@ void Dynamics::runDecentralizedDynamics(std::vector<std::shared_ptr<Node>> &node
         for (int j{0}; j < nodes.size(); j++)
         {
             double neighbor_z_sum{0}, neighbor_zdot_sum{0};
-            for (int k{0}; k < nodes[j]->neighbors.size(); k++)
+            // for (int k{0}; k < nodes[j]->neighbors.size(); k++)
+            for(auto &n: nodes[j]->neighbors)
             {
-                neighbor_z_sum += nodes[j]->neighbors[k]->z_old;
-                neighbor_zdot_sum += nodes[j]->neighbors[k]->z_dot_old;
+                neighbor_z_sum += n.first->z_old;
+                neighbor_zdot_sum += n.first->z_dot_old;
             }
             double z_ddot = force_vec(j) - dampingCoeff * (nodes[j]->neighbors.size() * nodes[j]->z_dot - neighbor_zdot_sum + epsilon * nodes[j]->z_dot) - stiffnessCoeff * (nodes[j]->neighbors.size() * nodes[j]->z - neighbor_z_sum + epsilon * nodes[j]->z);
             nodes[j]->z += (nodes[j]->z_dot * timeStep);

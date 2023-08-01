@@ -44,12 +44,24 @@ LIB_FOLDERS = -L/usr/local/lib
 
 BIN_FOLDER = bin
 SRC_FOLDER = src
-MAIN_HEADERS = include/Plot.cpp include/Graph.cpp include/Node.cpp include/Dynamics.cpp include/Force.cpp include/Histogram.cpp include/GradientDescent.cpp
+GRAPH_HEADERS = include/Graph.cpp include/Node.cpp
+VISUAL_HEADERS = include/Plot.cpp include/Histogram.cpp 
+DYNAMICS_HEADERS = include/Dynamics.cpp include/Force.cpp
+GD_HEADERS =  include/GradientDescent.cpp
+DIST_GD_HEADERS = include/DistributedGD.cpp
 
 .PHONY: gdMain
 gdMain:
 	@printf "\nNow compiling '$(_BLUE)$@$(_CLEAR)'...\n";
 	@$(call COMPILE_PROGRAM,\
 		$@,\
-		$(CC) $(CFLAGS) $(WARNS) $(INC_LOCAL) -o $(BIN_FOLDER)/$@ $(SRC_FOLDER)/$@.cpp $(MAIN_HEADERS) $(LIB_FOLDERS) $(LIBS) $(LIBS_OPENCV) $(LIBS_GNUPLOT)\
+		$(CC) $(CFLAGS) $(WARNS) $(INC_LOCAL) -o $(BIN_FOLDER)/$@ $(SRC_FOLDER)/$@.cpp $(GRAPH_HEADERS) $(VISUAL_HEADERS) $(GD_HEADERS) $(LIB_FOLDERS) $(LIBS) $(LIBS_OPENCV) $(LIBS_GNUPLOT)\
+	)
+
+.PHONY: distributedGDMain
+distributedGDMain:
+	@printf "\nNow compiling '$(_BLUE)$@$(_CLEAR)'...\n";
+	@$(call COMPILE_PROGRAM,\
+		$@,\
+		$(CC) $(CFLAGS) $(WARNS) $(INC_LOCAL) -o $(BIN_FOLDER)/$@ $(SRC_FOLDER)/$@.cpp $(GRAPH_HEADERS) $(VISUAL_HEADERS) $(DIST_GD_HEADERS) $(LIB_FOLDERS) $(LIBS) $(LIBS_OPENCV) $(LIBS_GNUPLOT)\
 	)

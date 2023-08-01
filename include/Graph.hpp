@@ -17,7 +17,7 @@ public:
 
     static constexpr double eps{0.1};
 
-    void constructSimpleGraph(const int size);
+    void constructSimpleGraph(const int size, const double initEdgeWeight=1.0);
 
     std::shared_ptr<Graph> applyGradient(const Eigen::MatrixXf &newAdjacencyMatrix) const;
 

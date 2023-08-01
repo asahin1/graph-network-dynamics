@@ -2,8 +2,9 @@
 #include <iostream>
 #include <memory>
 #include <numeric>
+#include <utility>
 
-void Graph::constructSimpleGraph(const int size)
+void Graph::constructSimpleGraph(const int size, const double initEdgeWeight)
 {
 
     gridSize = size;
@@ -27,8 +28,10 @@ void Graph::constructSimpleGraph(const int size)
         {
             if (nodes[i]->isNear(*nodes[j]))
             {
-                nodes[i]->neighbors.push_back(nodes[j]);
-                nodes[j]->neighbors.push_back(nodes[i]);
+                // nodes[i]->neighbors.push_back(nodes[j]);
+                nodes[i]->neighbors.insert(std::make_pair(nodes[j],initEdgeWeight));
+                // nodes[j]->neighbors.push_back(nodes[i]);
+                nodes[j]->neighbors.insert(std::make_pair(nodes[i],initEdgeWeight));
             }
         }
     }
@@ -73,8 +76,8 @@ void Graph::computeMatrices()
             A(i, j) = 0;
             if (nodes[i]->isNeighbor(nodes[j]))
             {
-                A(i, j) = 1;
-                A(j, i) = 1;
+                A(i, j) = nodes[i]->neighbors[nodes[j]];
+                A(j, i) = nodes[j]->neighbors[nodes[i]];
                 C(i, j) = 1;
                 C(j, i) = 1;
             }

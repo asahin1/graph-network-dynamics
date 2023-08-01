@@ -1,6 +1,7 @@
 #ifndef _NODE_H_
 #define _NODE_H_
 
+#include <unordered_map>
 #include <vector>
 #include <memory>
 
@@ -10,7 +11,8 @@ private:
 public:
     const int x, y; // Coordinates (just for plotting)
     const int id;
-    std::vector<std::shared_ptr<Node>> neighbors;
+    // std::vector<std::shared_ptr<Node>> neighbors;
+    std::unordered_map<std::shared_ptr<Node>,double> neighbors;
     double z;     // State
     double z_old; // Previous state (for discrete time computations)
     double z_dot{0};
@@ -23,6 +25,8 @@ public:
     double isNear(const Node &n) const;
 
     bool isNeighbor(const std::shared_ptr<Node> n) const;
+
+    void runLocalGD();
 
     void print(const std::string head) const;
 };
