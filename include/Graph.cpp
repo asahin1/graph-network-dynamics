@@ -29,9 +29,10 @@ void Graph::constructSimpleGraph(const int size, const double initEdgeWeight)
             if (nodes[i]->isNear(*nodes[j]))
             {
                 // nodes[i]->neighbors.push_back(nodes[j]);
-                nodes[i]->neighbors.insert(std::make_pair(nodes[j],initEdgeWeight));
+                std::shared_ptr<double> edgeWeightPtr{new double(initEdgeWeight)};
+                nodes[i]->neighbors.insert(std::make_pair(nodes[j],edgeWeightPtr));
                 // nodes[j]->neighbors.push_back(nodes[i]);
-                nodes[j]->neighbors.insert(std::make_pair(nodes[i],initEdgeWeight));
+                nodes[j]->neighbors.insert(std::make_pair(nodes[i],edgeWeightPtr));
             }
         }
     }
@@ -76,8 +77,8 @@ void Graph::computeMatrices()
             A(i, j) = 0;
             if (nodes[i]->isNeighbor(nodes[j]))
             {
-                A(i, j) = nodes[i]->neighbors[nodes[j]];
-                A(j, i) = nodes[j]->neighbors[nodes[i]];
+                A(i, j) = *nodes[i]->neighbors[nodes[j]];
+                A(j, i) = *nodes[j]->neighbors[nodes[i]];
                 C(i, j) = 1;
                 C(j, i) = 1;
             }

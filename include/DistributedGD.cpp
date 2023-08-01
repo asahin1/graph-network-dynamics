@@ -17,6 +17,7 @@ void DistributedGD::runNStepDescent(const int nIter){
         plotHistogram();
     }
     plotGraph();
+    std::cout << currentGraph->adjacencyMatrix << std::endl;
 }
 
 void DistributedGD::runOneStepDescent(){
@@ -25,6 +26,7 @@ void DistributedGD::runOneStepDescent(){
         n->runLocalGD();
     }
     // regenerate or update the graph usign new node info
+    currentGraph->computeMatrices();
 }
 
 void DistributedGD::plotHistogram(){

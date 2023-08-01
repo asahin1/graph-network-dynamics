@@ -5,6 +5,12 @@
 #include <vector>
 #include <memory>
 
+struct MatrixIdx{
+    int j;
+    int k;
+    MatrixIdx(int jj, int kk): j{jj}, k{kk}{}
+};
+
 class Node
 {
 private:
@@ -12,7 +18,7 @@ public:
     const int x, y; // Coordinates (just for plotting)
     const int id;
     // std::vector<std::shared_ptr<Node>> neighbors;
-    std::unordered_map<std::shared_ptr<Node>,double> neighbors;
+    std::unordered_map<std::shared_ptr<Node>,std::shared_ptr<double>> neighbors;
     double z;     // State
     double z_old; // Previous state (for discrete time computations)
     double z_dot{0};

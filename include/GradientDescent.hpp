@@ -7,12 +7,6 @@
 #include "Graph.hpp"
 #include "gnuplot-iostream.h"
 
-struct MatrixIdx{
-    int j;
-    int k;
-    MatrixIdx(int jj, int kk): j{jj}, k{kk}{}
-};
-
 class GradientDescent{
 
 public:
