@@ -25,7 +25,7 @@ void Dynamics::setNodeStates(Graph &g, Eigen::VectorXf &states) const
     }
 }
 
-void Dynamics::runCentralizedDynamics(Graph &g, Force &force, Plot &plot) const
+/*void Dynamics::runCentralizedDynamics(Graph &g, Force &force, Plot &plot) const
 {
     plot.displayMethod("Centralized");
     int nNodes = g.nodes.size();
@@ -37,7 +37,37 @@ void Dynamics::runCentralizedDynamics(Graph &g, Force &force, Plot &plot) const
     double timeStep = double(simTime) / simSteps;
     for (int i{0}; i < simSteps + 1; i++)
     {
-        x_ddot = force.sinusoidalForce(i * timeStep) - A_Matrix * x_dot - B_Matrix * x;
+        x_ddot = force.sinCauchyForce(i * timeStep) - A_Matrix * x_dot - B_Matrix * x;
+        // x_ddot = getForcing(i * timeStep, 1, 6.13602, nNodes) - A_Matrix * x_dot - B_Matrix * x;
+        x += (x_dot * timeStep);
+        x_dot += (x_ddot * timeStep);
+        setNodeStates(g, x);
+        for (int j{0}; j < nNodes; j++)
+        {
+            plot.plotNode(*g.nodes[j]);
+            plot.displayState(*g.nodes[j]);
+        }
+        // std::cout << x << std::endl
+        //           << std::endl;
+        plot.displayTime(std::to_string(i * timeStep) + " s");
+        plot.displayPlot();
+        usleep(1E+3 * timeStep);
+    }
+}*/
+
+void Dynamics::runCentralizedDynamics(Graph &g, Force &force, Plot &plot) const
+{
+    plot.displayMethod("Centralized");
+    int nNodes = g.nodes.size();
+    Eigen::MatrixXf A_Matrix = dampingCoeff * (epsilon * Eigen::MatrixXf::Identity(nNodes, nNodes));
+    Eigen::MatrixXf B_Matrix = (g.laplacianMatrix + epsilon * Eigen::MatrixXf::Identity(nNodes, nNodes));
+    Eigen::VectorXf x = getStateVector(g);
+    Eigen::VectorXf x_dot = Eigen::VectorXf::Zero(nNodes);
+    Eigen::VectorXf x_ddot(nNodes);
+    double timeStep = double(simTime) / simSteps;
+    for (int i{0}; i < simSteps + 1; i++)
+    {
+        x_ddot = force.sinCauchyForce(i * timeStep) - A_Matrix * x_dot - B_Matrix * x;
         // x_ddot = getForcing(i * timeStep, 1, 6.13602, nNodes) - A_Matrix * x_dot - B_Matrix * x;
         x += (x_dot * timeStep);
         x_dot += (x_ddot * timeStep);

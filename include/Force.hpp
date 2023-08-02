@@ -17,6 +17,8 @@ public:
     void insertForceElement(int idx);
 
     Eigen::VectorXf sinusoidalForce(double t);
+    Eigen::VectorXf sinCauchyForce(double t);
+
 };
 
 #endif

@@ -38,9 +38,13 @@ void GradientDescent::runOneStepDescent(){
     do{
         if(nRecompute > maxRecompute)
             return;
-        auto adjGradient = computeAdjGradientDoubleMin(graphHistory.back(), weightsToAvoid); 
-        // auto adjGradient = computeAdjGradientDoubleSum(graphHistory.back(), weightsToAvoid); 
-        newAdjacencyMatrix = oldAdjacencyMatrix + gradientStep * adjGradient; 
+        auto adjGradient = computeAdjGradientDoubleSumNew(graphHistory.back(), weightsToAvoid); 
+        double sum_s = 0;
+        for(int i{0}; i < adjGradient.col(0).size(); i++){
+            sum_s = sum_s + adjGradient.col(i).dot(adjGradient.col(i));
+        }
+        sum_s = 1;
+        newAdjacencyMatrix = oldAdjacencyMatrix - ((gradientStep/sum_s) * adjGradient); 
         if(fixedWeightSum)
             scaledAdjacencyMatrix = newAdjacencyMatrix * oldAdjacencyMatrix.sum() / newAdjacencyMatrix.sum(); 
         else
@@ -117,6 +121,48 @@ Eigen::MatrixXf GradientDescent::computeAdjGradientDoubleSum(const std::shared_p
     return gradientMat;
 }
 
+Eigen::MatrixXf GradientDescent::computeAdjGradientDoubleSumNew(const std::shared_ptr<Graph> graph, std::vector<MatrixIdx> &weightsToAvoid) const{
+
+    // double sum gradient
+    Eigen::MatrixXf gradientMat = Eigen::MatrixXf::Zero(graph->adjacencyMatrix.rows(),graph->adjacencyMatrix.cols());
+    double sumEig = std::accumulate(graph->eigenValues.begin(), graph->eigenValues.end(), 0);
+    int nEig = graph->eigenValues.size();
+    double a = 0.1;
+    for(int j{0}; j<gradientMat.rows(); j++){
+        auto u_row_j = graph->eigenVectors.row(j);
+        for(int k{j+1}; k<gradientMat.cols(); k++){
+           // if(j < k){
+                auto u_row_k = graph->eigenVectors.row(k);
+                if(graph->connectivityMatrix(j,k) == 0)
+                    continue;
+                double gradAtJK{0};
+                double grad1{0};
+                double grad2{0};
+                for(int i{0}; i<nEig; i++){
+                    double lambda_i = graph->eigenValues[i];
+                    for(int l{0}; l<nEig; l++){
+                        double lambda_l = graph->eigenValues[l];
+                        if(i != l){
+                           // grad1 += (-4*a*a *(a*a*lambda_i+lambda_i+lambda_l)) / (lambda_l * pow(a*a*lambda_i+pow(sqrt(lambda_i)-sqrt(lambda_l),2),3));
+                           // grad2 += (4*a*a*lambda_l*(-a*a*lambda_l-lambda_l+4*sqrt(lambda_l)*sqrt(lambda_i)-3*lambda_i)) / (lambda_i * lambda_i * pow(a*a*lambda_l+pow(sqrt(lambda_l)-sqrt(lambda_i),2),3));
+                            grad1 += (-4*a*a *(a*a*lambda_i+lambda_i-lambda_l)) / (lambda_l * pow(a*a*lambda_i+pow(sqrt(lambda_i)-sqrt(lambda_l),2),3));
+                            grad2 += (4*a*a*lambda_l*(-a*a*lambda_l-lambda_l+4*sqrt(lambda_l)*sqrt(lambda_i)-3*lambda_i)) / (lambda_i * lambda_i * pow(a*a*lambda_l+pow(sqrt(lambda_l)-sqrt(lambda_i),2),3));
+                        }
+                    }
+                    gradAtJK += (grad1+grad2)*pow(u_row_j[i]-u_row_k[i],2);//gradJ*pow(u_row_j[i]-u_row_k[i],2) + gradK*pow(u_row_j[i]-u_row_k[i],2);
+                }
+                gradientMat(j,k) = gradAtJK;
+                gradientMat(k,j) = gradAtJK;
+            //}
+        }
+    }
+    for(auto &el: weightsToAvoid){
+        gradientMat(el.j,el.k) = 0;
+        gradientMat(el.k,el.j) = 0;
+    }
+    return gradientMat;
+}
+
 std::vector<MatrixIdx> GradientDescent::getInvalidWeightIdx(const Eigen::MatrixXf &adjMat) const{
     std::vector<MatrixIdx> res;
     for(int j{0}; j<adjMat.rows(); j++){
@@ -126,6 +172,14 @@ std::vector<MatrixIdx> GradientDescent::getInvalidWeightIdx(const Eigen::MatrixX
         }
     }
     return res; 
+}
+
+std::vector<double> GradientDescent::returnEigenvalues(){
+    std::vector<double> ev;
+    for(int i{}; i < graphGridSize*graphGridSize; i++){
+        ev.push_back(graphHistory.back()->eigenValues[i]);
+    }
+    return ev;
 }
 
 void GradientDescent::plotHistogram(){

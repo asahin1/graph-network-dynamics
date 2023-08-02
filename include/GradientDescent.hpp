@@ -19,14 +19,15 @@ public:
     GradientDescent(std::shared_ptr<Graph> initGraph);
     GradientDescent(std::shared_ptr<Graph> initGraph, bool weightConstraint, bool weightSumConstraint);
     void runNStepDescent(const int nIter);
+    std::vector<double> returnEigenvalues();
     void destroyHistogram();
 private:
     // Attributes
     const int graphGridSize;
-    const double minEdgeWeight{0.2};
+    const double minEdgeWeight{0.05};
     const int maxRecompute{5};
     Gnuplot histogramStream;
-    double gradientStep{1};
+    double gradientStep{.00001/sqrt(graphGridSize*graphGridSize*2-2*graphGridSize)};
     std::vector<std::shared_ptr<Graph>> graphHistory;
     const bool constrainedWeights;
     const bool fixedWeightSum;
@@ -36,6 +37,7 @@ private:
     void runOneStepDescent();
     Eigen::MatrixXf computeAdjGradientDoubleMin(const std::shared_ptr<Graph> graph, std::vector<MatrixIdx> &weightsToAvoid) const;
     Eigen::MatrixXf computeAdjGradientDoubleSum(const std::shared_ptr<Graph> graph, std::vector<MatrixIdx> &weightsToAvoid) const;
+    Eigen::MatrixXf computeAdjGradientDoubleSumNew(const std::shared_ptr<Graph> graph, std::vector<MatrixIdx> &weightsToAvoid) const;
     bool invalidAdjacencyMatrix(const Eigen::MatrixXf &adjMat) const;
     std::vector<MatrixIdx> getInvalidWeightIdx(const Eigen::MatrixXf &adjMat) const;
     void plotHistogram();
