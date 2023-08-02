@@ -102,38 +102,38 @@ int main(int argc, char *argv[]){
     gdObj.runNStepDescent(nIterFirst);
     gdObj.destroyHistogram();
 
-    std::vector<double> ev = gdObj.returnEigenvalues();
-
-    printEigenVal(ev);
-
-    int MAX_X = 10;
-    int MAX_Y = 10;
-    int PLOT_SCALE = 40;
-    int vPad = 2;
-    int hPad = 2;
-    double damping{0.1}, stiffness{5}, epsilon{0.01};
-    double amp{1};
-    bool decentralizedAlg = false;
-
-    // Generate plot
-    Plot my_plot("State Plot - Chosen EigVal: " + std::to_string(chosenEigVal), PLOT_SCALE, vPad, hPad, MAX_X, MAX_Y);
-    my_plot.plotGraph(*graphInit);
-    my_plot.displayPlot(true);
-    
-    double freq{sqrt(chosenEigVal)};
-    Force my_force(amp, freq, graphInit->nodes.size());
-    my_force.insertForceElement(1);
-
-
-    // Simulate dynamics
-    int simulationTime{400};
-    int simulationSteps{simulationTime * 100};
-    Dynamics my_sim(simulationTime, simulationSteps, damping, stiffness);
-    if (decentralizedAlg)
-        my_sim.runDecentralizedDynamics(graphInit->nodes, my_force, my_plot);
-    else
-        my_sim.runCentralizedDynamics(*graphInit, my_force, my_plot);
-    my_plot.displayPlot(true);
+    //     std::vector<double> ev = gdObj.returnEigenvalues();
+    // 
+    //     printEigenVal(ev);
+    // 
+    //     int MAX_X = 10;
+    //     int MAX_Y = 10;
+    //     int PLOT_SCALE = 40;
+    //     int vPad = 2;
+    //     int hPad = 2;
+    //     double damping{0.1}, stiffness{5}, epsilon{0.01};
+    //     double amp{1};
+    //     bool decentralizedAlg = false;
+    // 
+    //     // Generate plot
+    //     Plot my_plot("State Plot - Chosen EigVal: " + std::to_string(chosenEigVal), PLOT_SCALE, vPad, hPad, MAX_X, MAX_Y);
+    //     my_plot.plotGraph(*graphInit);
+    //     my_plot.displayPlot(true);
+    //     
+    //     double freq{sqrt(chosenEigVal)};
+    //     Force my_force(amp, freq, graphInit->nodes.size());
+    //     my_force.insertForceElement(1);
+    // 
+    // 
+    //     // Simulate dynamics
+    //     int simulationTime{400};
+    //     int simulationSteps{simulationTime * 100};
+    //     Dynamics my_sim(simulationTime, simulationSteps, damping, stiffness);
+    //     if (decentralizedAlg)
+    //         my_sim.runDecentralizedDynamics(graphInit->nodes, my_force, my_plot);
+    //     else
+    //         my_sim.runCentralizedDynamics(*graphInit, my_force, my_plot);
+    //     my_plot.displayPlot(true);
 
     return 0;
 }

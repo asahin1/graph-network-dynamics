@@ -24,10 +24,11 @@ public:
 private:
     // Attributes
     const int graphGridSize;
-    const double minEdgeWeight{0.05};
+    const double minEdgeWeight{0.2};
     const int maxRecompute{5};
     Gnuplot histogramStream;
-    double gradientStep{.00001/sqrt(graphGridSize*graphGridSize*2-2*graphGridSize)};
+    // double gradientStep{.00001/sqrt(graphGridSize*graphGridSize*2-2*graphGridSize)};
+    double gradientStep{0.1};
     std::vector<std::shared_ptr<Graph>> graphHistory;
     const bool constrainedWeights;
     const bool fixedWeightSum;
@@ -36,12 +37,12 @@ private:
     void decreaseGradientStep();
     void runOneStepDescent();
     Eigen::MatrixXf computeAdjGradientDoubleMin(const std::shared_ptr<Graph> graph, std::vector<MatrixIdx> &weightsToAvoid) const;
-    Eigen::MatrixXf computeAdjGradientDoubleSum(const std::shared_ptr<Graph> graph, std::vector<MatrixIdx> &weightsToAvoid) const;
-    Eigen::MatrixXf computeAdjGradientDoubleSumNew(const std::shared_ptr<Graph> graph, std::vector<MatrixIdx> &weightsToAvoid) const;
+    Eigen::MatrixXf computeAdjGradientDoubleSum(const std::shared_ptr<Graph> graph) const;
+    Eigen::MatrixXf computeAdjGradientDoubleSumNew(const std::shared_ptr<Graph> graph) const;
     bool invalidAdjacencyMatrix(const Eigen::MatrixXf &adjMat) const;
     std::vector<MatrixIdx> getInvalidWeightIdx(const Eigen::MatrixXf &adjMat) const;
     void plotHistogram();
-    void plotGraph();
+    void plotGraph(bool waitForKey=true);
     void printIterInfo(const int iterNo) const;
 };
 

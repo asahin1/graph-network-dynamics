@@ -1,4 +1,5 @@
 #include "Plot.hpp"
+#include <algorithm>
 
 CvScalar Plot::defaultNodeColor = cvScalar(150, 150, 150);
 CvScalar Plot::defaultEdgeColor = cvScalar(150, 150, 150);
@@ -106,30 +107,28 @@ double Plot::round(double var, int place)
 
 void Plot::plotGraph(Graph &g)
 {   
-    double max = (g.adjacencyMatrix.coeff((*g.nodes[0]).id,(*g.nodes[0]->neighbors[0]).id));
+    double maxEdgeWeight = std::max<double>(g.adjacencyMatrix.maxCoeff(),0.0);
+    double minEdgeWeight = std::min<double>(g.adjacencyMatrix.minCoeff(),0.0);
+    // std::cout << "maxEdgeWeight: " << maxEdgeWeight << std::endl;
+    // std::cout << "minEdgeWeight: " << minEdgeWeight << std::endl;
     for (int i{0}; i < g.nodes.size(); i++)
     {
         for (int j{0}; j < g.nodes[i]->neighbors.size(); j++)
         {
-            //std::cout << g.adjacencyMatrix.coeff((*g.nodes[i]).id,(*g.nodes[i]->neighbors[j]).id) << "\n";
-            if(max < g.adjacencyMatrix.coeff((*g.nodes[i]).id,(*g.nodes[i]->neighbors[j]).id)){
-                max = g.adjacencyMatrix.coeff((*g.nodes[i]).id,(*g.nodes[i]->neighbors[j]).id);
+            // std::cout << "Indices: " << g.nodes[i]->id << ", " << g.nodes[i]->neighbors[j]->id << std::endl;
+            double edgeWeight = g.adjacencyMatrix(g.nodes[i]->id,g.nodes[i]->neighbors[j]->id);
+            // std::cout << "edgeWeight: " << edgeWeight << std::endl;
+            CvScalar edgeColor = cvScalar(0,0,0);
+            if(edgeWeight < 0){
+                // edgeColor.val[2] = 255*(minEdgeWeight-edgeWeight)/minEdgeWeight; 
+                edgeColor.val[2] = 255*edgeWeight/minEdgeWeight; 
             }
-        }
-    }
-    //std::cout << "edges plotted \n";
-    for (int i{0}; i < g.nodes.size(); i++)
-    {
-        for (int j{0}; j < g.nodes[i]->neighbors.size(); j++)
-        {
-            //if((g.adjacencyMatrix.coeff((*g.nodes[i]).id,(*g.nodes[i]->neighbors[j]).id)) > 0 && i != j){
-            if((*g.nodes[i]).id < (*g.nodes[i]->neighbors[j]).id){
-                //std::cout << "(i,j): " << (*g.nodes[i]).id << ", " << (*g.nodes[i]->neighbors[j]).id << ": " << round(1 + max+(((int)(g.adjacencyMatrix.coeff((*g.nodes[i]).id,(*g.nodes[i]->neighbors[j]).id)*5))/max),5) << "\n";
-
-                plotEdge(*g.nodes[i], *g.nodes[i]->neighbors[j], round(1 + max+(((int)(g.adjacencyMatrix.coeff((*g.nodes[i]).id,(*g.nodes[i]->neighbors[j]).id)*5))/max),5), cvScalar(255-(((int)(g.adjacencyMatrix.coeff((*g.nodes[i]).id,(*g.nodes[i]->neighbors[j]).id)*255)/max)),255-(((int)(g.adjacencyMatrix.coeff((*g.nodes[i]).id,(*g.nodes[i]->neighbors[j]).id)*255))/max),255-(((int)(g.adjacencyMatrix.coeff((*g.nodes[i]).id,(*g.nodes[i]->neighbors[j]).id)*255))/max)));
-                //plotEdge(*g.nodes[i], *g.nodes[i]->neighbors[j], (255 + (int)(g.adjacencyMatrix.coeff((*g.nodes[i]).id,(*g.nodes[i]->neighbors[j]).id))) / 255, cvScalar(255-(((int)(g.adjacencyMatrix.coeff((*g.nodes[i]).id,(*g.nodes[i]->neighbors[j]).id)*255)/max)),255-(((int)(g.adjacencyMatrix.coeff((*g.nodes[i]).id,(*g.nodes[i]->neighbors[j]).id)*255))/max),255-(((int)(g.adjacencyMatrix.coeff((*g.nodes[i]).id,(*g.nodes[i]->neighbors[j]).id)*255))/max)));
-                //((int)g.adjacencyMatrix.coeff(i,j)*10)
+            else{
+                // edgeColor.val[1] = 255*(maxEdgeWeight-edgeWeight)/maxEdgeWeight;
+                edgeColor.val[1] = 255*edgeWeight/maxEdgeWeight; 
             }
+            // std::cout << "edgeColor: [" << edgeColor.val[0] << ", " << edgeColor.val[1] << ", " << edgeColor.val[2] << "]" << std::endl;
+            plotEdge(*g.nodes[i], *g.nodes[i]->neighbors[j], defaultEdgeThickness, edgeColor);
         }
     }
 
