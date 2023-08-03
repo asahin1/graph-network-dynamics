@@ -126,7 +126,7 @@ int main(int argc, char *argv[]){
 
 
     // Simulate dynamics
-    int simulationTime{400};
+    int simulationTime{40000};
     int simulationSteps{simulationTime * 100};
     Dynamics my_sim(simulationTime, simulationSteps, damping, stiffness);
     if (decentralizedAlg)
