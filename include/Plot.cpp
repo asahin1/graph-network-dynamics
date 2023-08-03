@@ -83,13 +83,13 @@ void Plot::plotEigen(const Graph &g, Eigen::VectorXf &vec, int size)
 void Plot::plotNode(Node &n, int size)
 {
     CvScalar color;
-    double val = abs(n.z) * 500;
+    double val = abs(n.z)* 500;
     if (n.z > 0)
         color = cvScalar(val, 0, 0);
     else
         color = cvScalar(0, 0, val);
-    cv::circle(currentImg, transformGraphToPlot(n), size, cvScalar(0, 0, 0), -1);
-    //cv::circle(currentImg, transformGraphToPlot(n), size, color, -1);
+    //cv::circle(currentImg, transformGraphToPlot(n), size, cvScalar(0, 0, 0), -1);
+    cv::circle(currentImg, transformGraphToPlot(n), size, color, -1);
 }
 
 //void Plot::plotEdge(Node &n1, Node &n2, CvScalar color, double thickness)
