@@ -67,27 +67,20 @@ void printEigenVal(Eigen::VectorXf ev){
 int main(int argc, char *argv[]){
 
     int gridSize{10};
-    int nIterFirst{100};
+    int maxIter{10000};
     bool weightConstraint{true};
-    bool weightSumConstraint{true};
 
     if(argc==2){
         gridSize = std::stoi(argv[1]);
     }
     else if(argc==3){
         gridSize = std::stoi(argv[1]);
-        nIterFirst = std::stoi(argv[2]);
-    }
-    else if(argc==4){
-        gridSize = std::stoi(argv[1]);
-        nIterFirst = std::stoi(argv[2]);
-        weightConstraint = std::stoi(argv[3]);
+        maxIter = std::stoi(argv[2]);
     }
     else if(argc>4){
         gridSize = std::stoi(argv[1]);
-        nIterFirst = std::stoi(argv[2]);
+        maxIter = std::stoi(argv[2]);
         weightConstraint = std::stoi(argv[3]);
-        weightSumConstraint = std::stoi(argv[4]);
     }
 
     // Initialize graph
@@ -98,9 +91,10 @@ int main(int argc, char *argv[]){
 
     printEigenVal(graphInit->eigenValues);
 
-    GradientDescent gdObj(graphInit,weightConstraint,weightSumConstraint);
-    gdObj.runNStepDescent(nIterFirst);
+    GradientDescent gdObj(graphInit,weightConstraint);
+    gdObj.runNStepDescent(maxIter);
     gdObj.destroyHistogram();
+    gdObj.destroyObjectivePlot();
 
     //     std::vector<double> ev = gdObj.returnEigenvalues();
     // 

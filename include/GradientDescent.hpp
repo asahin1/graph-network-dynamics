@@ -16,22 +16,24 @@ struct MatrixIdx{
 class GradientDescent{
 
 public:
-    GradientDescent(std::shared_ptr<Graph> initGraph);
-    GradientDescent(std::shared_ptr<Graph> initGraph, bool weightConstraint, bool weightSumConstraint);
+    GradientDescent(std::shared_ptr<Graph> initGraph, bool weightConstraint);
     void runNStepDescent(const int nIter);
     std::vector<double> returnEigenvalues();
     void destroyHistogram();
+    void destroyObjectivePlot();
 private:
     // Attributes
     const int graphGridSize;
     const double minEdgeWeight{0.2};
-    const int maxRecompute{5};
     Gnuplot histogramStream;
-    // double gradientStep{.00001/sqrt(graphGridSize*graphGridSize*2-2*graphGridSize)};
+    Gnuplot objectivePlotStream;
+    // double gradientStep{0.000001};
+    // double minGradNorm{0.15};
     double gradientStep{0.1};
+    double minGradNorm{0.15};
     std::vector<std::shared_ptr<Graph>> graphHistory;
+    std::vector<double> objectiveValueHistory;
     const bool constrainedWeights;
-    const bool fixedWeightSum;
 
     // Methods
     void decreaseGradientStep();
@@ -39,9 +41,11 @@ private:
     Eigen::MatrixXf computeAdjGradientDoubleMin(const std::shared_ptr<Graph> graph, std::vector<MatrixIdx> &weightsToAvoid) const;
     Eigen::MatrixXf computeAdjGradientDoubleSum(const std::shared_ptr<Graph> graph) const;
     Eigen::MatrixXf computeAdjGradientDoubleSumNew(const std::shared_ptr<Graph> graph) const;
-    bool invalidAdjacencyMatrix(const Eigen::MatrixXf &adjMat) const;
+    double evaluateObjectiveFunction(const Eigen::VectorXf& eigenvalues) const;
+    Eigen::MatrixXf scaleGradientAroundWeightThreshold(const Eigen::MatrixXf &connectivityMatrix, const Eigen::MatrixXf &newAdjacencyMatrix, const double matrixSum) const;
     std::vector<MatrixIdx> getInvalidWeightIdx(const Eigen::MatrixXf &adjMat) const;
     void plotHistogram();
+    void plotObjectivePlot();
     void plotGraph(bool waitForKey=true);
     void printIterInfo(const int iterNo) const;
 };

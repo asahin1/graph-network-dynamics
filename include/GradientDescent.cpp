@@ -1,16 +1,16 @@
 #include "GradientDescent.hpp"
 #include "Histogram.hpp"
+#include "ObjectivePlot.hpp"
 #include "Plot.hpp"
 #include <algorithm>
 #include <memory>
 #include <numeric>
 #include <vector>
 
-GradientDescent::GradientDescent(std::shared_ptr<Graph> initGraph): graphGridSize{initGraph->gridSize}, constrainedWeights{true}, fixedWeightSum{true}{
-    graphHistory.push_back(initGraph);
-}
-
-GradientDescent::GradientDescent(std::shared_ptr<Graph> initGraph, bool weightConstraint, bool weightSumConstraint): graphGridSize{initGraph->gridSize}, constrainedWeights{weightConstraint}, fixedWeightSum{weightSumConstraint}{
+GradientDescent::GradientDescent(std::shared_ptr<Graph> initGraph, bool weightConstraint): graphGridSize{initGraph->gridSize}, constrainedWeights{weightConstraint}{
+    //     gradientStep *= pow(initGraph->connectivityMatrix.sum(),2);
+    //     minGradNorm *= pow(initGraph->connectivityMatrix.sum(),2);
+    //     std::cout << "gradientStep: " << gradientStep << std::endl;
     graphHistory.push_back(initGraph);
 }
 
@@ -28,42 +28,33 @@ void GradientDescent::runNStepDescent(const int nIter){
         plotHistogram();
         plotGraph(false);
     }
+    plotObjectivePlot();
     plotGraph();
 }
 
 void GradientDescent::runOneStepDescent(){
     Eigen::MatrixXf oldAdjacencyMatrix = graphHistory.back()->adjacencyMatrix; 
-    Eigen::MatrixXf newAdjacencyMatrix = oldAdjacencyMatrix; 
-    Eigen::MatrixXf scaledAdjacencyMatrix = newAdjacencyMatrix; 
-    std::vector<MatrixIdx> weightsToAvoid; 
-    int nRecompute{0};
     auto adjGradient = computeAdjGradientDoubleSumNew(graphHistory.back()); 
-    // auto adjGradient = computeAdjGradientDoubleSum(graphHistory.back()); 
     double gradientNorm = adjGradient.norm();
     std::cout << "gradientNorm: " << gradientNorm << std::endl;
-    std::cout << "maxGradientElement: " << adjGradient.maxCoeff() << std::endl;
-    std::cout << "minGradientElement: " << adjGradient.minCoeff() << std::endl;
+    if(gradientNorm < minGradNorm)
+        return;
     auto normalizedAndScaledGradient = gradientStep*2*adjGradient/gradientNorm;
-    // std::cout << "normalizedAndScaledGradient: \n" << normalizedAndScaledGradient << std::endl;
-    newAdjacencyMatrix = oldAdjacencyMatrix + normalizedAndScaledGradient; 
-    if(fixedWeightSum)
-        scaledAdjacencyMatrix = newAdjacencyMatrix * oldAdjacencyMatrix.sum() / newAdjacencyMatrix.sum(); 
+    auto newAdjacencyMatrix = oldAdjacencyMatrix - normalizedAndScaledGradient;
+    Eigen::MatrixXf scaledAdjacencyMatrix = newAdjacencyMatrix; 
+    if(constrainedWeights)
+        scaledAdjacencyMatrix = scaleGradientAroundWeightThreshold(graphHistory.back()->connectivityMatrix,newAdjacencyMatrix,oldAdjacencyMatrix.sum());
     else
         scaledAdjacencyMatrix = newAdjacencyMatrix; 
-    if(constrainedWeights)
-        weightsToAvoid = getInvalidWeightIdx(scaledAdjacencyMatrix);
-    while(!weightsToAvoid.empty()){
-        if(nRecompute > maxRecompute)
-            return;
-        for(auto &el: weightsToAvoid){
-            scaledAdjacencyMatrix(el.j,el.k) = minEdgeWeight;
-            scaledAdjacencyMatrix(el.k,el.j) = minEdgeWeight;
-        }
-        scaledAdjacencyMatrix = scaledAdjacencyMatrix * oldAdjacencyMatrix.sum() / scaledAdjacencyMatrix.sum();
-        weightsToAvoid = getInvalidWeightIdx(scaledAdjacencyMatrix);
-        nRecompute++;
-    }
+    std::cout << "maxWeight: " << scaledAdjacencyMatrix.maxCoeff() << std::endl;
+    std::cout << "minWeight: " << scaledAdjacencyMatrix.minCoeff() << std::endl;
+    // std::cout << "scaledAdjacencyMatrix:\n" << scaledAdjacencyMatrix << std::endl;
+    auto invalidWeights{getInvalidWeightIdx(scaledAdjacencyMatrix)};
+    for(auto &el: invalidWeights)
+        std::cout << "Invalid weight at (" << el.j << ", " << el.k << "): " << scaledAdjacencyMatrix(el.j,el.k) << std::endl;
     graphHistory.push_back(graphHistory.back()->applyGradient(scaledAdjacencyMatrix));
+    double objVal = evaluateObjectiveFunction(graphHistory.back()->eigenValues);
+    objectiveValueHistory.push_back(objVal);
 }
 
 Eigen::MatrixXf GradientDescent::computeAdjGradientDoubleMin(const std::shared_ptr<Graph> graph, std::vector<MatrixIdx> &weightsToAvoid) const{
@@ -121,7 +112,7 @@ Eigen::MatrixXf GradientDescent::computeAdjGradientDoubleSum(const std::shared_p
                 // std::cout << "coeff uji uki: " << (nEig*lambda_i - sumEig) << std::endl;
                 gradAtJK += 4*pow(u_row_j[i]-u_row_k[i],2)*(nEig*lambda_i - sumEig); 
             }
-            std::cout << "Grad at (" << j << ", " << k << "): " << gradAtJK << std::endl;
+            // std::cout << "Grad at (" << j << ", " << k << "): " << gradAtJK << std::endl;
             gradientMat(j,k) = gradAtJK;
             gradientMat(k,j) = gradAtJK;
         }
@@ -154,13 +145,53 @@ Eigen::MatrixXf GradientDescent::computeAdjGradientDoubleSumNew(const std::share
                 for(int i{0}; i<nEig; i++){
                     gradAtJK += sumOverL[i]*pow(u_row_j[i]-u_row_k[i],2);//gradJ*pow(u_row_j[i]-u_row_k[i],2) + gradK*pow(u_row_j[i]-u_row_k[i],2);
                 }
-                std::cout << "Grad at (" << j << ", " << k << "): " << gradAtJK << std::endl;
+                // std::cout << "Grad at (" << j << ", " << k << "): " << gradAtJK << std::endl;
                 gradientMat(j,k) = gradAtJK;
                 gradientMat(k,j) = gradAtJK;
             //}
         }
     }
     return gradientMat;
+}
+
+double GradientDescent::evaluateObjectiveFunction(const Eigen::VectorXf& eigenvalues) const{
+    double objVal{0};
+    double h{0};
+    double denominator{0};
+    double a{0.1};
+    for(int i{0}; i<eigenvalues.size(); i++){
+        double lambda_i = eigenvalues[i];
+        h = a*sqrt(lambda_i);
+        for(int j{0}; j<eigenvalues.size(); j++){
+            double lambda_j = eigenvalues[j]; 
+            denominator = pow(sqrt(lambda_i)-sqrt(lambda_j),2) + h*h;
+            objVal += (4*h*h/lambda_j)*(1/(denominator*denominator));
+        }
+    }
+    return objVal;
+}
+
+Eigen::MatrixXf GradientDescent::scaleGradientAroundWeightThreshold(const Eigen::MatrixXf &connectivityMatrix, const Eigen::MatrixXf &newAdjacencyMatrix, const double matrixSum) const {
+
+    double minWeightVal = newAdjacencyMatrix.maxCoeff();
+    for(int i{0}; i<newAdjacencyMatrix.rows(); i++){
+        for(int j{0}; j<newAdjacencyMatrix.cols(); j++){
+            if(connectivityMatrix(i,j)){
+                if(newAdjacencyMatrix(i,j)<minWeightVal)
+                    minWeightVal = newAdjacencyMatrix(i,j);
+            }
+        }
+    }
+    double scaleFactor = (matrixSum - connectivityMatrix.sum()*minEdgeWeight)/(newAdjacencyMatrix.sum() - connectivityMatrix.sum()*minWeightVal);
+    Eigen::MatrixXf scaledAdjacencyMatrix = newAdjacencyMatrix;
+    for(int i{0}; i<scaledAdjacencyMatrix.rows(); i++){
+        for(int j{0}; j<scaledAdjacencyMatrix.cols(); j++){
+            if(connectivityMatrix(i,j)){
+                scaledAdjacencyMatrix(i,j) = minEdgeWeight + scaleFactor*(newAdjacencyMatrix(i,j) - minWeightVal);
+            }
+        }
+    }
+    return scaledAdjacencyMatrix;
 }
 
 std::vector<MatrixIdx> GradientDescent::getInvalidWeightIdx(const Eigen::MatrixXf &adjMat) const{
@@ -189,8 +220,18 @@ void GradientDescent::plotHistogram(){
 
 }
 
+void GradientDescent::plotObjectivePlot(){
+
+    objectivePlot::generateObjectivePlot(objectivePlotStream,objectiveValueHistory);
+
+}
+
 void GradientDescent::destroyHistogram(){
     histogramStream << "set term x11 close\n";
+}
+
+void GradientDescent::destroyObjectivePlot(){
+    objectivePlotStream << "set term x11 close\n";
 }
 
 void GradientDescent::plotGraph(bool waitForKey){
@@ -217,4 +258,5 @@ void GradientDescent::printIterInfo(const int iterNo) const{
     }
     std::cout << "Eigenvalues cumulative distance : " << eigDistNorm << std::endl;
     std::cout << "Eigenvalues minimum distance : " << eigDistMin << std::endl;
+    // std::cout << "Objective value: " << objVal << std::endl;
 }

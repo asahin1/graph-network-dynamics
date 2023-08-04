@@ -44,7 +44,7 @@ LIB_FOLDERS = -L/usr/local/lib
 
 BIN_FOLDER = bin
 SRC_FOLDER = src
-MAIN_HEADERS = include/Plot.cpp include/Graph.cpp include/Node.cpp include/Dynamics.cpp include/Force.cpp include/Histogram.cpp include/GradientDescent.cpp
+MAIN_HEADERS = include/Plot.cpp include/Graph.cpp include/Node.cpp include/Dynamics.cpp include/Force.cpp include/Histogram.cpp include/GradientDescent.cpp include/ObjectivePlot.cpp
 
 .PHONY: gdMain
 gdMain:
