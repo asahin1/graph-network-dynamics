@@ -27,10 +27,8 @@ private:
     const double minEdgeWeight{0.2};
     Gnuplot histogramStream;
     Gnuplot objectivePlotStream;
-    // double gradientStep{0.000001};
-    // double minGradNorm{0.15};
-    double gradientStep{0.1};
-    double minGradNorm{0.15};
+    double gradientStep{0.000001}; // works for 10x10
+    double minGradNorm{0.6}; // works for 10x10
     std::vector<std::shared_ptr<Graph>> graphHistory;
     std::vector<double> objectiveValueHistory;
     const bool constrainedWeights;

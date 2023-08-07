@@ -8,9 +8,11 @@
 #include <vector>
 
 GradientDescent::GradientDescent(std::shared_ptr<Graph> initGraph, bool weightConstraint): graphGridSize{initGraph->gridSize}, constrainedWeights{weightConstraint}{
-    //     gradientStep *= pow(initGraph->connectivityMatrix.sum(),2);
-    //     minGradNorm *= pow(initGraph->connectivityMatrix.sum(),2);
-    //     std::cout << "gradientStep: " << gradientStep << std::endl;
+    gradientStep *= pow(initGraph->connectivityMatrix.sum()/2,2);
+    // gradientStep = 1/pow(initGraph->connectivityMatrix.sum()/2,2);
+    minGradNorm *= pow(initGraph->connectivityMatrix.sum()/2,2);
+    std::cout << "gradientStep: " << gradientStep << std::endl;
+    std::cout << "minGradNorm: " << minGradNorm << std::endl;
     graphHistory.push_back(initGraph);
 }
 
@@ -37,8 +39,8 @@ void GradientDescent::runOneStepDescent(){
     auto adjGradient = computeAdjGradientDoubleSumNew(graphHistory.back()); 
     double gradientNorm = adjGradient.norm();
     std::cout << "gradientNorm: " << gradientNorm << std::endl;
-    if(gradientNorm < minGradNorm)
-        return;
+    // if(gradientNorm < minGradNorm)
+    //     return;
     auto normalizedAndScaledGradient = gradientStep*2*adjGradient/gradientNorm;
     auto newAdjacencyMatrix = oldAdjacencyMatrix - normalizedAndScaledGradient;
     Eigen::MatrixXf scaledAdjacencyMatrix = newAdjacencyMatrix; 
