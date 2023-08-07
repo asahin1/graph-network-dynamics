@@ -29,6 +29,23 @@ void DistributedGD::runOneStepDescent(){
     currentGraph->computeMatrices();
 }
 
+double DistributedGD::evaluateObjectiveFunction(const Eigen::VectorXf& eigenvalues) const{
+    double objVal{0};
+    double h{0};
+    double denominator{0};
+    double a{0.1};
+    for(int i{0}; i<eigenvalues.size(); i++){
+        double lambda_i = eigenvalues[i];
+        h = a*sqrt(lambda_i);
+        for(int j{0}; j<eigenvalues.size(); j++){
+            double lambda_j = eigenvalues[j];
+            denominator = pow(sqrt(lambda_i)-sqrt(lambda_j),2) + h*h;
+            objVal += (4*h*h/lambda_j)*(1/(denominator*denominator));
+        }
+    }
+    return objVal;
+}
+
 void DistributedGD::plotHistogram(){
 
     if(currentGraph)
@@ -63,4 +80,5 @@ void DistributedGD::printIterInfo(const int iterNo) const{
     }
     std::cout << "Eigenvalues cumulative distance : " << eigDistNorm << std::endl;
     std::cout << "Eigenvalues minimum distance : " << eigDistMin << std::endl;
+    std::cout << "Objective value: " << evaluateObjectiveFunction(eigenvalues) << std::endl;
 }

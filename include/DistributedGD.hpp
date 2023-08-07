@@ -17,6 +17,7 @@ private:
     const int graphGridSize;
     Gnuplot histogramStream;
     void runOneStepDescent();
+    double evaluateObjectiveFunction(const Eigen::VectorXf &eigenvalues) const;
     void plotHistogram();
     void plotGraph();
     void printIterInfo(const int iterNo) const;

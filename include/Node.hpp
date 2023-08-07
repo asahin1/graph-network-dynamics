@@ -24,6 +24,9 @@ public:
     double z_dot{0};
     double z_dot_old{0};
 
+    double minEdgeWeight{0.2};
+    double gradientStep{0.1};
+
     Node(int xx, int yy, int id);
     Node(int xx, int yy, int id, double zz);
 
