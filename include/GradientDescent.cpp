@@ -44,14 +44,20 @@ void GradientDescent::runOneStepDescent(){
     auto normalizedAndScaledGradient = gradientStep*2*adjGradient/gradientNorm;
     auto newAdjacencyMatrix = oldAdjacencyMatrix - normalizedAndScaledGradient;
     Eigen::MatrixXf scaledAdjacencyMatrix = newAdjacencyMatrix; 
-    if(constrainedWeights)
-        scaledAdjacencyMatrix = scaleGradientAroundWeightThreshold(graphHistory.back()->connectivityMatrix,newAdjacencyMatrix,oldAdjacencyMatrix.sum());
+    std::vector<MatrixIdx> invalidWeights;
+    if(constrainedWeights){
+        double oldMatrixSum{oldAdjacencyMatrix.sum()};
+        scaledAdjacencyMatrix = newAdjacencyMatrix*oldMatrixSum/newAdjacencyMatrix.sum();
+        invalidWeights = getInvalidWeightIdx(scaledAdjacencyMatrix);
+        if(!invalidWeights.empty())
+            scaledAdjacencyMatrix = scaleGradientAroundWeightThreshold(graphHistory.back()->connectivityMatrix,newAdjacencyMatrix,oldMatrixSum);
+    }
     else
         scaledAdjacencyMatrix = newAdjacencyMatrix; 
     std::cout << "maxWeight: " << scaledAdjacencyMatrix.maxCoeff() << std::endl;
     std::cout << "minWeight: " << scaledAdjacencyMatrix.minCoeff() << std::endl;
     // std::cout << "scaledAdjacencyMatrix:\n" << scaledAdjacencyMatrix << std::endl;
-    auto invalidWeights{getInvalidWeightIdx(scaledAdjacencyMatrix)};
+    invalidWeights = getInvalidWeightIdx(scaledAdjacencyMatrix);
     for(auto &el: invalidWeights)
         std::cout << "Invalid weight at (" << el.j << ", " << el.k << "): " << scaledAdjacencyMatrix(el.j,el.k) << std::endl;
     graphHistory.push_back(graphHistory.back()->applyGradient(scaledAdjacencyMatrix));
