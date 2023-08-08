@@ -29,6 +29,7 @@ private:
     Gnuplot objectivePlotStream;
     double gradientStep{0.000001}; // works for 10x10
     double minGradNorm{0.6}; // works for 10x10
+    double weightDiffThreshold{1E-8};
     std::vector<std::shared_ptr<Graph>> graphHistory;
     std::vector<double> objectiveValueHistory;
     const bool constrainedWeights;

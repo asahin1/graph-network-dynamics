@@ -11,8 +11,10 @@ GradientDescent::GradientDescent(std::shared_ptr<Graph> initGraph, bool weightCo
     gradientStep *= pow(initGraph->connectivityMatrix.sum()/2,2);
     // gradientStep = 1/pow(initGraph->connectivityMatrix.sum()/2,2);
     minGradNorm *= pow(initGraph->connectivityMatrix.sum()/2,2);
+    weightDiffThreshold *= pow(initGraph->connectivityMatrix.sum()/2,2);
     std::cout << "gradientStep: " << gradientStep << std::endl;
     std::cout << "minGradNorm: " << minGradNorm << std::endl;
+    std::cout << "weightDiffThreshold: " << weightDiffThreshold << std::endl;
     graphHistory.push_back(initGraph);
 }
 
@@ -60,6 +62,11 @@ void GradientDescent::runOneStepDescent(){
     invalidWeights = getInvalidWeightIdx(scaledAdjacencyMatrix);
     for(auto &el: invalidWeights)
         std::cout << "Invalid weight at (" << el.j << ", " << el.k << "): " << scaledAdjacencyMatrix(el.j,el.k) << std::endl;
+    auto weightDiff = scaledAdjacencyMatrix-oldAdjacencyMatrix;
+    double weightDiffNorm = weightDiff.norm();
+    std::cout << "weightDiffNorm: " << weightDiffNorm << std::endl;
+    if(weightDiffNorm < weightDiffThreshold)
+        return;
     graphHistory.push_back(graphHistory.back()->applyGradient(scaledAdjacencyMatrix));
     double objVal = evaluateObjectiveFunction(graphHistory.back()->eigenValues);
     objectiveValueHistory.push_back(objVal);
