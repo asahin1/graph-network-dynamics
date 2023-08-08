@@ -107,28 +107,21 @@ double Plot::round(double var, int place)
 
 void Plot::plotGraph(Graph &g)
 {   
-    double maxEdgeWeight = std::max<double>(g.adjacencyMatrix.maxCoeff(),0.0);
-    double minEdgeWeight = std::min<double>(g.adjacencyMatrix.minCoeff(),0.0);
-    // std::cout << "maxEdgeWeight: " << maxEdgeWeight << std::endl;
-    // std::cout << "minEdgeWeight: " << minEdgeWeight << std::endl;
+    double max = std::max<double>(g.adjacencyMatrix.maxCoeff(),0.0);
+    double min = std::min<double>(g.adjacencyMatrix.minCoeff(),0.0);
+    //std::cout << "edges plotted \n";
     for (int i{0}; i < g.nodes.size(); i++)
     {
         for (int j{0}; j < g.nodes[i]->neighbors.size(); j++)
         {
-            // std::cout << "Indices: " << g.nodes[i]->id << ", " << g.nodes[i]->neighbors[j]->id << std::endl;
             double edgeWeight = g.adjacencyMatrix(g.nodes[i]->id,g.nodes[i]->neighbors[j]->id);
-            // std::cout << "edgeWeight: " << edgeWeight << std::endl;
             CvScalar edgeColor = cvScalar(0,0,0);
-            if(edgeWeight < 0){
-                // edgeColor.val[2] = 255*(minEdgeWeight-edgeWeight)/minEdgeWeight; 
-                edgeColor.val[2] = 255*edgeWeight/minEdgeWeight; 
+            edgeColor.val[0] = 255-(((int)(g.adjacencyMatrix.coeff((*g.nodes[i]).id,(*g.nodes[i]->neighbors[j]).id)*255))/(max-min));
+            edgeColor.val[1] = edgeColor.val[0];
+            edgeColor.val[2] = edgeColor.val[0];
+            if((*g.nodes[i]).id < (*g.nodes[i]->neighbors[j]).id){
+                plotEdge(*g.nodes[i], *g.nodes[i]->neighbors[j], 75/sqrt(g.nodes.size()), edgeColor);
             }
-            else{
-                // edgeColor.val[1] = 255*(maxEdgeWeight-edgeWeight)/maxEdgeWeight;
-                edgeColor.val[1] = 255*edgeWeight/maxEdgeWeight; 
-            }
-            // std::cout << "edgeColor: [" << edgeColor.val[0] << ", " << edgeColor.val[1] << ", " << edgeColor.val[2] << "]" << std::endl;
-            plotEdge(*g.nodes[i], *g.nodes[i]->neighbors[j], defaultEdgeThickness, edgeColor);
         }
     }
 
@@ -137,6 +130,7 @@ void Plot::plotGraph(Graph &g)
         plotNode(*g.nodes[i]);
     }
 }
+
 
 void Plot::initWindow()
 {
